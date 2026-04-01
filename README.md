@@ -1,0 +1,2 @@
+# GMactivities
+Personal classes platform
