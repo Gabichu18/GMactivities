@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GM Actividades | GM Activities</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F7F6F2; --surface: #FFFFFF; --text: #1A1A18; --muted: #7A7A72;
+    --accent: #2D6A4F; --accent-light: #E8F3EE; --accent-mid: #52B788;
+    --border: #E2E0D8; --step-inactive: #D0CEC6; --radius: 16px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 400; min-height: 100vh; padding-bottom: 60px; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .brand-name { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--accent); letter-spacing: -0.5px; }
+  .brand-sub { font-size: 0.72rem; color: var(--muted); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  .lang-toggle { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 100px; padding: 3px; gap: 2px; }
+  .lang-btn { border: none; background: transparent; padding: 5px 14px; border-radius: 100px; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .lang-btn.active { background: var(--accent); color: white; }
+
+  .hero { padding: 48px 24px 32px; text-align: center; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 10px; }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero p { color: var(--muted); font-size: 0.95rem; font-weight: 300; max-width: 340px; margin: 0 auto; line-height: 1.6; }
+
+  .stepper { display: flex; align-items: center; justify-content: center; padding: 0 12px 32px; }
+  .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--step-inactive); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: var(--step-inactive); background: var(--bg); transition: all 0.3s; }
+  .step-dot.active { border-color: var(--accent); color: white; background: var(--accent); }
+  .step-dot.done { border-color: var(--accent-mid); background: var(--accent-mid); color: white; }
+  .step-label { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); text-align: center; }
+  .step-label.active { color: var(--accent); }
+  .step-line { flex: 1; height: 2px; background: var(--step-inactive); margin-bottom: 20px; max-width: 24px; transition: background 0.3s; }
+  .step-line.done { background: var(--accent-mid); }
+
+  .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin: 0 16px 24px; padding: 28px 24px; border: 1px solid var(--border); animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+  .card-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+
+  .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .service-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 16px; cursor: pointer; transition: all 0.2s; position: relative; background: var(--bg); }
+  .service-card:hover { border-color: var(--accent-mid); }
+  .service-card.selected { border-color: var(--accent); background: var(--accent-light); }
+  .service-card:nth-child(3) { grid-column: 1 / -1; }
+  .service-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+  .service-title { font-family: 'DM Serif Display', serif; font-size: 1.05rem; line-height: 1.2; margin-bottom: 5px; }
+  .service-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; font-weight: 300; }
+  .service-check { position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: white; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+  .service-card.selected .service-check { opacity: 1; }
+  .swim-lang { display: none; gap: 8px; margin-top: 12px; }
+  .swim-lang.visible { display: flex; }
+  .swim-lang-btn { flex: 1; padding: 7px; border: 1.5px solid var(--border); border-radius: 8px; background: white; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .swim-lang-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .month-label { font-family: 'DM Serif Display', serif; font-size: 1.1rem; text-transform: capitalize; }
+  .nav-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; color: var(--text); transition: all 0.15s; }
+  .nav-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .weekdays-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+  .wd-label { text-align: center; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; border: 1.5px solid transparent; }
+  .cal-day:hover:not(.disabled):not(.empty) { background: var(--accent-light); border-color: var(--accent-mid); }
+  .cal-day.selected { background: var(--accent); color: white; border-color: var(--accent); font-weight: 600; }
+  .cal-day.disabled { color: var(--step-inactive); cursor: default; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.today:not(.selected) { border-color: var(--accent-mid); color: var(--accent); font-weight: 600; }
+
+  .slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 8px; }
+  .slot-btn { padding: 14px 8px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); font-family: 'Jost', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.2s; text-align: center; line-height: 1.3; }
+  .slot-btn:hover { border-color: var(--accent-mid); background: var(--accent-light); }
+  .slot-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+  .slot-time { display: block; font-size: 0.92rem; font-weight: 600; }
+  .slot-dur { display: block; font-size: 0.68rem; opacity: 0.75; margin-top: 2px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .form-input { width: 100%; padding: 13px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Jost', sans-serif; font-size: 0.92rem; color: var(--text); background: var(--bg); transition: border-color 0.2s; outline: none; }
+  .form-input:focus { border-color: var(--accent); background: white; }
+  .form-input::placeholder { color: var(--step-inactive); }
+  textarea.form-input { resize: vertical; min-height: 80px; }
+
+  .summary-rows { display: flex; flex-direction: column; gap: 14px; }
+  .summary-row { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .summary-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .summary-key { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .summary-val { font-size: 0.92rem; font-weight: 500; color: var(--text); line-height: 1.4; }
+
+  .btn-primary { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover { background: #245940; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(45,106,79,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
+  .btn-ghost { width: 100%; padding: 12px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 12px; font-family: 'Jost', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
+  .btn-ghost:hover { border-color: var(--accent-mid); color: var(--text); }
+
+  .info-box { background: var(--accent-light); border: 1px solid #b7ddc9; border-radius: 10px; padding: 12px 16px; font-size: 0.8rem; color: var(--accent); line-height: 1.6; margin-top: 20px; display: flex; gap: 10px; align-items: flex-start; }
+  .info-box span:last-child { flex: 1; }
+
+  .success-screen { text-align: center; padding: 20px 0 10px; }
+  .success-icon { width: 72px; height: 72px; border-radius: 50%; background: #E8F8EF; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 20px; }
+  .success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin-bottom: 8px; }
+  .success-screen p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; font-weight: 300; }
+
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.75rem; font-weight: 300; }
+  .hidden { display: none !important; }
+  .mt-8 { margin-top: 8px; }
+  .opt-label { font-size: 0.72rem; color: var(--muted); font-weight: 300; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand-name" id="brandName">GM Actividades</div>
+    <div class="brand-sub" id="brandBy">por Gabriel Mengual</div>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('es')">ES</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<div class="hero">
+  <h1 id="heroTitle">Reserva tu <em>clase</em><br/>con Gabriel</h1>
+  <p id="heroSub">Clases particulares para adolescentes. Selecciona el servicio, fecha y hora — te confirmo por WhatsApp.</p>
+</div>
+
+<div class="stepper">
+  <div class="step-item"><div class="step-dot active" id="dot1">1</div><span class="step-label active" id="sl1">Servicio</span></div>
+  <div class="step-line" id="line1"></div>
+  <div class="step-item"><div class="step-dot" id="dot2">2</div><span class="step-label" id="sl2">Fecha</span></div>
+  <div class="step-line" id="line2"></div>
+  <div class="step-item"><div class="step-dot" id="dot3">3</div><span class="step-label" id="sl3">Hora</span></div>
+  <div class="step-line" id="line3"></div>
+  <div class="step-item"><div class="step-dot" id="dot4">4</div><span class="step-label" id="sl4">Datos</span></div>
+  <div class="step-line" id="line4"></div>
+  <div class="step-item"><div class="step-dot" id="dot5">5</div><span class="step-label" id="sl5">Confirmar</span></div>
+</div>
+
+<!-- STEP 1 -->
+<div class="card" id="step1">
+  <div class="card-title" id="s1title">¿Qué clase quieres reservar?</div>
+  <div class="services-grid">
+    <div class="service-card" id="svc-english" onclick="selectService('english')">
+      <span class="service-check">✓</span>
+      <span class="service-icon">📖</span>
+      <div class="service-title" id="svc-english-title">Inglés</div>
+      <div class="service-desc" id="svc-english-desc">Clases particulares de inglés para adolescentes</div>
+    </div>
+    <div class="service-card" id="svc-econ" onclick="selectService('econ')">
+      <span class="service-check">✓</span>
+      <span class="service-icon">📊</span>
+      <div class="service-title" id="svc-econ-title">Economía</div>
+      <div class="service-desc" id="svc-econ-desc">Clases particulares de economía para adolescentes</div>
+    </div>
+    <div class="service-card" id="svc-swim" onclick="selectService('swim')">
+      <span class="service-check">✓</span>
+      <span class="service-icon">🏊</span>
+      <div class="service-title" id="svc-swim-title">Natación</div>
+      <div class="service-desc" id="svc-swim-desc">Clases de natación para adolescentes</div>
+      <div class="swim-lang" id="swimLangPicker">
+        <button class="swim-lang-btn" id="swimEs" onclick="setSwimLang('es',event)">En español</button>
+        <button class="swim-lang-btn" id="swimEn" onclick="setSwimLang('en',event)">In English</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-primary" id="s1btn" onclick="goTo(2)" disabled><span id="s1btnTxt">Siguiente →</span></button>
+</div>
+
+<!-- STEP 2 -->
+<div class="card hidden" id="step2">
+  <div class="card-title" id="s2title">Selecciona una fecha</div>
+  <div class="month-nav">
+    <button class="nav-btn" id="prevMonth" onclick="changeMonth(-1)">‹</button>
+    <span class="month-label" id="monthLabel"></span>
+    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="weekdays-row" id="weekdaysRow"></div>
+  <div class="cal-grid" id="calGrid"></div>
+  <button class="btn-primary" id="s2btn" onclick="goTo(3)" disabled><span id="s2btnTxt">Siguiente →</span></button>
+  <button class="btn-ghost" onclick="goTo(1)" id="s2back">← Volver</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="card hidden" id="step3">
+  <div class="card-title" id="s3title">Selecciona una hora</div>
+  <div id="slotsContainer"></div>
+  <button class="btn-primary" id="s3btn" onclick="goTo(4)" disabled><span id="s3btnTxt">Siguiente →</span></button>
+  <button class="btn-ghost" onclick="goTo(2)" id="s3back">← Volver</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="card hidden" id="step4">
+  <div class="card-title" id="s4title">Tus datos de contacto</div>
+  <div class="form-group">
+    <label class="form-label" id="lbl-name">Tu nombre completo</label>
+    <input class="form-input" type="text" id="clientName" placeholder="Ej: María García" oninput="checkDetails()"/>
+  </div>
+  <div class="form-group">
+    <label class="form-label" id="lbl-phone">Tu teléfono</label>
+    <input class="form-input" type="tel" id="clientPhone" placeholder="Ej: +34 600 123 456" oninput="checkDetails()"/>
+  </div>
+  <div class="form-group">
+    <label class="form-label" id="lbl-address">Tu dirección</label>
+    <textarea class="form-input" id="clientAddress" placeholder="Calle, número, ciudad..." oninput="checkDetails()"></textarea>
+  </div>
+  <div class="form-group">
+    <label class="form-label" id="lbl-notes">Notas adicionales <span class="opt-label" id="optLabel">(opcional)</span></label>
+    <textarea class="form-input" id="clientNotes" placeholder="Nivel, dudas, preferencias..." style="min-height:60px"></textarea>
+  </div>
+  <button class="btn-primary" id="s4btn" onclick="goTo(5)" disabled><span id="s4btnTxt">Siguiente →</span></button>
+  <button class="btn-ghost" onclick="goTo(3)" id="s4back">← Volver</button>
+</div>
+
+<!-- STEP 5 -->
+<div class="card hidden" id="step5">
+  <div class="card-title" id="s5title">Confirma tu reserva</div>
+  <div class="summary-rows">
+    <div class="summary-row"><div class="summary-icon">📋</div><div><div class="summary-key" id="sk1">Servicio</div><div class="summary-val" id="sv1">—</div></div></div>
+    <div class="summary-row"><div class="summary-icon">📅</div><div><div class="summary-key" id="sk2">Fecha</div><div class="summary-val" id="sv2">—</div></div></div>
+    <div class="summary-row"><div class="summary-icon">🕐</div><div><div class="summary-key" id="sk3">Hora</div><div class="summary-val" id="sv3">—</div></div></div>
+    <div class="summary-row"><div class="summary-icon">👤</div><div><div class="summary-key" id="sk4">Alumno</div><div class="summary-val" id="sv4">—</div></div></div>
+    <div class="summary-row"><div class="summary-icon">📍</div><div><div class="summary-key" id="sk5">Dirección</div><div class="summary-val" id="sv5">—</div></div></div>
+  </div>
+  <div class="info-box">
+    <span>💬</span>
+    <span id="waNote">Al confirmar se abrirá WhatsApp con todo el mensaje listo — solo tienes que pulsar Enviar una vez.</span>
+  </div>
+  <button class="btn-primary" style="background:#25D366;margin-top:16px" onclick="sendWhatsApp()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span id="wabtnTxt">Confirmar y abrir WhatsApp</span>
+  </button>
+  <button class="btn-ghost" onclick="goTo(4)" id="s5back">← Volver</button>
+</div>
+
+<!-- SUCCESS -->
+<div class="card hidden" id="stepDone">
+  <div class="success-screen">
+    <div class="success-icon">✅</div>
+    <h2 id="doneTitle">¡Solicitud enviada!</h2>
+    <p id="doneText">Gabriel recibirá tu mensaje y te confirmará la reserva en breve. Revisa tu WhatsApp.</p>
+    <button class="btn-primary mt-8" onclick="resetAll()"><span id="doneBtn">Hacer otra reserva</span></button>
+  </div>
+</div>
+
+<footer>© 2025 GM Actividades · Gabriel Mengual</footer>
+
+<script>
+const PHONE = '34601126747';
+
+// Time slots per day-of-week (0=Sun,6=Sat)
+const SLOTS = {
+  1: ['10:00–11:00','11:15–12:15','12:30–13:30','13:45–14:45','19:30–20:30'],
+  3: ['10:00–11:00','11:15–12:15','12:30–13:30','13:45–14:45','19:30–20:30'],
+  5: ['10:00–11:00','11:15–12:15','12:30–13:30','13:45–14:45','19:30–20:30'],
+  2: ['10:00–11:00','11:15–12:15','12:30–13:30','13:45–14:45','17:30–18:30','18:45–19:45'],
+  4: ['10:00–11:00','11:15–12:15','12:30–13:30','13:45–14:45','17:30–18:30','18:45–19:45'],
+  6: ['12:30–13:30','13:45–14:45','17:30–18:30','18:45–19:45','20:00–21:00'],
+  0: ['12:30–13:30','13:45–14:45','17:30–18:30','18:45–19:45','20:00–21:00']
+};
+
+let lang='es', selectedService=null, swimLang=null, selectedDate=null, selectedTime=null;
+let currentMonth=new Date(); currentMonth.setDate(1);
+
+const TR = {
+  brandName:{es:'GM Actividades',en:'GM Activities'},
+  brandBy:{es:'por Gabriel Mengual',en:'by Gabriel Mengual'},
+  heroTitle:{es:'Reserva tu <em>clase</em><br/>con Gabriel',en:'Book your <em>class</em><br/>with Gabriel'},
+  heroSub:{es:'Clases particulares para adolescentes. Selecciona el servicio, fecha y hora — te confirmo por WhatsApp.',en:'Private tutoring for teenagers. Pick your service, date and time — Gabriel will confirm via WhatsApp.'},
+  s1title:{es:'¿Qué clase quieres reservar?',en:'What class do you want to book?'},
+  s2title:{es:'Selecciona una fecha',en:'Choose a date'},
+  s3title:{es:'Selecciona una hora',en:'Choose a time slot'},
+  s4title:{es:'Tus datos de contacto',en:'Your contact details'},
+  s5title:{es:'Confirma tu reserva',en:'Confirm your booking'},
+  sl1:{es:'Servicio',en:'Service'},sl2:{es:'Fecha',en:'Date'},sl3:{es:'Hora',en:'Time'},sl4:{es:'Datos',en:'Details'},sl5:{es:'Confirmar',en:'Confirm'},
+  'svc-english-title':{es:'Inglés',en:'English'},
+  'svc-english-desc':{es:'Clases particulares de inglés para adolescentes',en:'Private English tutoring for teenagers'},
+  'svc-econ-title':{es:'Economía',en:'Economics'},
+  'svc-econ-desc':{es:'Clases particulares de economía para adolescentes',en:'Private Economics tutoring for teenagers'},
+  'svc-swim-title':{es:'Natación',en:'Swimming'},
+  'svc-swim-desc':{es:'Clases de natación para adolescentes',en:'Swimming lessons for teenagers'},
+  swimEs:{es:'En español',en:'In Spanish'},swimEn:{es:'In English',en:'In English'},
+  s1btnTxt:{es:'Siguiente →',en:'Next →'},s2btnTxt:{es:'Siguiente →',en:'Next →'},
+  s3btnTxt:{es:'Siguiente →',en:'Next →'},s4btnTxt:{es:'Siguiente →',en:'Next →'},
+  'lbl-name':{es:'Tu nombre completo',en:'Your full name'},
+  'lbl-phone':{es:'Tu teléfono',en:'Your phone number'},
+  'lbl-address':{es:'Tu dirección',en:'Your address'},
+  'lbl-notes':{es:'Notas adicionales',en:'Additional notes'},
+  optLabel:{es:'(opcional)',en:'(optional)'},
+  sk1:{es:'Servicio',en:'Service'},sk2:{es:'Fecha',en:'Date'},sk3:{es:'Hora',en:'Time'},
+  sk4:{es:'Alumno',en:'Student'},sk5:{es:'Dirección',en:'Address'},
+  waNote:{es:'Al confirmar se abrirá WhatsApp con todo el mensaje listo — solo tienes que pulsar Enviar una vez.',en:'Confirming will open WhatsApp with the full message ready — just tap Send once.'},
+  wabtnTxt:{es:'Confirmar y abrir WhatsApp',en:'Confirm & open WhatsApp'},
+  doneTitle:{es:'¡Solicitud enviada!',en:'Request sent!'},
+  doneText:{es:'Gabriel recibirá tu mensaje y te confirmará la reserva en breve. Revisa tu WhatsApp.',en:'Gabriel will receive your message and confirm your booking shortly. Check your WhatsApp.'},
+  doneBtn:{es:'Hacer otra reserva',en:'Book another'},
+  s2back:{es:'← Volver',en:'← Back'},s3back:{es:'← Volver',en:'← Back'},s4back:{es:'← Volver',en:'← Back'},s5back:{es:'← Volver',en:'← Back'},
+  durLabel:{es:'1 hora',en:'1 hour'},
+  clientNamePh:{es:'Ej: María García',en:'E.g. John Smith'},
+  clientPhonePh:{es:'Ej: +34 600 123 456',en:'E.g. +34 600 123 456'},
+  clientAddrPh:{es:'Calle, número, ciudad...',en:'Street, number, city...'},
+  clientNotesPh:{es:'Nivel, dudas, preferencias...',en:'Level, questions, preferences...'}
+};
+
+const SVC_NAMES={english:{es:'Clases de Inglés',en:'English Classes'},econ:{es:'Clases de Economía',en:'Economics Classes'},swim:{es:'Natación',en:'Swimming'}};
+const SWIM_LANG_LABEL={es:{es:'(en español)',en:'(in Spanish)'},en:{es:'(en inglés)',en:'(in English)'}};
+const MONTHS={es:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],en:['January','February','March','April','May','June','July','August','September','October','November','December']};
+const WD={es:['Lu','Ma','Mi','Ju','Vi','Sá','Do'],en:['Mo','Tu','We','Th','Fr','Sa','Su']};
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&l==='es')||(i===1&&l==='en')));
+  ['brandName','brandBy','heroTitle','heroSub'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=TR[id][l];});
+  Object.keys(TR).forEach(id=>{
+    if(['brandName','brandBy','heroTitle','heroSub'].includes(id))return;
+    const el=document.getElementById(id); if(!el)return;
+    const v=TR[id][l]; if(!v)return;
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')el.placeholder=v;
+    else el.textContent=v;
+  });
+  buildCalendar(); buildSlots(); updateSummary();
+}
+
+function goTo(step){
+  [1,2,3,4,5,'Done'].forEach(s=>{const el=document.getElementById('step'+s);if(el)el.classList.add('hidden');});
+  document.getElementById('step'+step).classList.remove('hidden');
+  updateStepper(step);
+  if(step===2)buildCalendar();
+  if(step===3)buildSlots();
+  if(step===5)updateSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateStepper(cur){
+  [1,2,3,4,5].forEach(i=>{
+    const d=document.getElementById('dot'+i),l=document.getElementById('sl'+i);
+    d.className='step-dot';l.className='step-label';
+    if(i<cur){d.classList.add('done');d.textContent='✓';}
+    else if(i===cur){d.classList.add('active');d.textContent=i;l.classList.add('active');}
+    else d.textContent=i;
+  });
+  [1,2,3,4].forEach(i=>{document.getElementById('line'+i).className='step-line'+(i<cur?' done':'');});
+}
+
+function selectService(svc){
+  selectedService=svc;swimLang=null;
+  ['english','econ','swim'].forEach(s=>document.getElementById('svc-'+s).classList.toggle('selected',s===svc));
+  document.getElementById('swimLangPicker').classList.toggle('visible',svc==='swim');
+  document.getElementById('swimEs').classList.remove('selected');
+  document.getElementById('swimEn').classList.remove('selected');
+  document.getElementById('s1btn').disabled=svc==='swim';
+}
+function setSwimLang(l,e){
+  e.stopPropagation();swimLang=l;
+  document.getElementById('swimEs').classList.toggle('selected',l==='es');
+  document.getElementById('swimEn').classList.toggle('selected',l==='en');
+  document.getElementById('s1btn').disabled=false;
+}
+
+function changeMonth(dir){currentMonth.setMonth(currentMonth.getMonth()+dir);buildCalendar();}
+function buildCalendar(){
+  const wd=document.getElementById('weekdaysRow'),grid=document.getElementById('calGrid'),ml=document.getElementById('monthLabel'),prev=document.getElementById('prevMonth');
+  if(!wd)return;
+  wd.innerHTML=WD[lang].map(d=>`<div class="wd-label">${d}</div>`).join('');
+  const today=new Date();today.setHours(0,0,0,0);
+  const tm=new Date(currentMonth);
+  ml.textContent=MONTHS[lang][tm.getMonth()]+' '+tm.getFullYear();
+  prev.disabled=tm<=new Date(today.getFullYear(),today.getMonth(),1);
+  const firstDay=new Date(tm.getFullYear(),tm.getMonth(),1);
+  let off=firstDay.getDay()-1;if(off<0)off=6;
+  const dim=new Date(tm.getFullYear(),tm.getMonth()+1,0).getDate();
+  let html='';
+  for(let i=0;i<off;i++)html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=dim;d++){
+    const date=new Date(tm.getFullYear(),tm.getMonth(),d);
+    const isPast=date<today,isToday=date.getTime()===today.getTime();
+    const isSel=selectedDate&&date.toDateString()===selectedDate.toDateString();
+    let cls='cal-day';
+    if(isPast)cls+=' disabled';
+    if(isToday&&!isPast)cls+=' today';
+    if(isSel)cls+=' selected';
+    const oc=isPast?'':`onclick="selectDate(${tm.getFullYear()},${tm.getMonth()},${d})"`;
+    html+=`<div class="${cls}" ${oc}>${d}</div>`;
+  }
+  grid.innerHTML=html;
+  document.getElementById('s2btn').disabled=!selectedDate;
+}
+function selectDate(y,m,d){
+  selectedDate=new Date(y,m,d);selectedTime=null;
+  buildCalendar();document.getElementById('s2btn').disabled=false;
+}
+
+function buildSlots(){
+  const container=document.getElementById('slotsContainer');
+  if(!container||!selectedDate)return;
+  const dow=selectedDate.getDay();
+  const slots=SLOTS[dow]||[];
+  if(!slots.length){container.innerHTML=`<p style="color:var(--muted);font-size:.88rem;text-align:center;padding:20px 0">${lang==='es'?'No hay horarios disponibles.':'No slots available.'}</p>`;return;}
+  container.innerHTML=`<div class="slots-grid">${slots.map(t=>`<button class="slot-btn${selectedTime===t?' selected':''}" onclick="selectTime('${t}')"><span class="slot-time">${t}</span><span class="slot-dur">${TR.durLabel[lang]}</span></button>`).join('')}</div>`;
+  document.getElementById('s3btn').disabled=!selectedTime;
+}
+function selectTime(t){selectedTime=t;buildSlots();document.getElementById('s3btn').disabled=false;}
+
+function checkDetails(){
+  const n=document.getElementById('clientName').value.trim();
+  const p=document.getElementById('clientPhone').value.trim();
+  const a=document.getElementById('clientAddress').value.trim();
+  document.getElementById('s4btn').disabled=!(n&&p&&a);
+}
+
+function updateSummary(){
+  if(!selectedService)return;
+  let svc=SVC_NAMES[selectedService][lang];
+  if(selectedService==='swim'&&swimLang)svc+=' '+SWIM_LANG_LABEL[swimLang][lang];
+  document.getElementById('sv1').textContent=svc;
+  if(selectedDate)document.getElementById('sv2').textContent=selectedDate.toLocaleDateString(lang==='es'?'es-ES':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(selectedTime)document.getElementById('sv3').textContent=selectedTime+'h';
+  const name=document.getElementById('clientName')?.value||'';
+  const phone=document.getElementById('clientPhone')?.value||'';
+  document.getElementById('sv4').textContent=name+(phone?' · '+phone:'');
+  document.getElementById('sv5').textContent=document.getElementById('clientAddress')?.value||'';
+}
+
+function sendWhatsApp(){
+  const name=document.getElementById('clientName').value.trim();
+  const phone=document.getElementById('clientPhone').value.trim();
+  const addr=document.getElementById('clientAddress').value.trim();
+  const notes=document.getElementById('clientNotes').value.trim();
+  let svc=SVC_NAMES[selectedService][lang];
+  if(selectedService==='swim'&&swimLang)svc+=' '+SWIM_LANG_LABEL[swimLang][lang];
+  const dateStr=selectedDate.toLocaleDateString(lang==='es'?'es-ES':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const msg=lang==='es'
+    ?`¡Hola Gabriel! Me gustaría reservar una clase contigo.\n\n📋 *Servicio:* ${svc}\n📅 *Fecha:* ${dateStr}\n🕐 *Hora:* ${selectedTime}h\n👤 *Nombre:* ${name}\n📞 *Teléfono:* ${phone}\n📍 *Dirección:* ${addr}`+(notes?`\n💬 *Notas:* ${notes}`:'')+`\n\n¿Está disponible ese día?`
+    :`Hi Gabriel! I'd like to book a class with you.\n\n📋 *Service:* ${svc}\n📅 *Date:* ${dateStr}\n🕐 *Time:* ${selectedTime}h\n👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n📍 *Address:* ${addr}`+(notes?`\n💬 *Notes:* ${notes}`:'')+`\n\nAre you available that day?`;
+  window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`,'_blank');
+  document.getElementById('step5').classList.add('hidden');
+  document.getElementById('stepDone').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetAll(){
+  selectedService=null;swimLang=null;selectedDate=null;selectedTime=null;
+  ['english','econ','swim'].forEach(s=>document.getElementById('svc-'+s).classList.remove('selected'));
+  document.getElementById('swimLangPicker').classList.remove('visible');
+  document.getElementById('s1btn').disabled=true;
+  ['clientName','clientPhone','clientAddress','clientNotes'].forEach(id=>document.getElementById(id).value='');
+  currentMonth=new Date();currentMonth.setDate(1);
+  goTo(1);
+}
+
+setLang('es');updateStepper(1);
+</script>
+</body>
+</html>
